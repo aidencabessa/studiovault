@@ -849,12 +849,42 @@ function Card({s}){
 /* ═══════════════════════════════════════════════════════════════════
    AI FIXER
 ═══════════════════════════════════════════════════════════════════ */
-const SYS=`You are a world-class Roblox Luau developer. Analyze the provided script for bugs, errors, deprecated APIs, security issues, and bad practices.
+const SYS=`You are a world-class Roblox Luau developer with deep knowledge of Roblox Studio, the Roblox API, and production game development best practices.
+
+Analyze the provided script thoroughly for ALL of the following:
+
+BUGS & ERRORS:
+- Incorrect API casing (e.g. findFirstChild vs FindFirstChild)
+- Missing nil checks that will cause runtime errors
+- Accessing properties on potentially nil values
+- Wrong service names or deprecated APIs
+
+SECURITY & EXPLOITS:
+- Any logic that can be exploited by clients
+- Missing server-side validation
+- Cash/currency manipulation vulnerabilities
+- Missing player existence checks after async operations
+
+ROBLOX BEST PRACTICES:
+- Instance.new('Tool') is WRONG — tools must be cloned from ServerStorage, never created blank
+- Never use workspace.X directly — use WaitForChild or FindFirstChild
+- Always use pcall around DataStore operations
+- RemoteEvents must validate ALL input on the server
+- Touched events need debounce to prevent rapid firing
+- Use task.wait() not wait(), use task.spawn() not spawn()
+- Always check player.Character exists before accessing it
+- Tags (creator) should use Debris:AddItem for cleanup
+
+FUNCTIONALITY:
+- Code that won't actually work in a real game even if it doesn't error
+- Missing pieces that would prevent the script from functioning correctly
+- Logic errors that produce wrong behavior
 
 Respond ONLY with a valid JSON object — no markdown, no backticks:
-{"summary":"One sentence: what this script does","issues":["issue 1","issue 2"],"fixedCode":"complete corrected script","whatChanged":["change 1 + brief reason"]}
+{"summary":"One sentence: what this script does","issues":["specific issue 1","specific issue 2"],"fixedCode":"complete corrected script","whatChanged":["change 1 + brief reason"]}
 
-If no issues exist, return empty arrays for issues and whatChanged, and return the original code in fixedCode.`;
+If no issues exist, return empty arrays for issues and whatChanged, and return the original code in fixedCode.
+Be specific in issues — say exactly what line or pattern is wrong and why.`;
 
 const STEPS=["Reading your script…","Identifying issues…","Generating fix…","Finalizing…"];
 
