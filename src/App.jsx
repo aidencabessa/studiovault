@@ -871,7 +871,7 @@ function AIFixer(){
     setLoading(true);setResult(null);setErr(null);setStep(0);
     const iv=setInterval(()=>setStep(s=>Math.min(s+1,STEPS.length-1)),900);
     try{
-      const res=await fetch("https://api.anthropic.com/v1/messages",{
+      const res=await fetch("/api/fix",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
