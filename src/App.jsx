@@ -793,6 +793,192 @@ Instance.new("UICorner", button).CornerRadius = UDim.new(1, 0)
 button.MouseButton1Click:Connect(function()
     humanoid.Jump = true
 end)`},
+
+  {id:21,title:"Teleport to Place",desc:"Teleport a player to another Roblox Place ID. Works for portals, hubs, and multiplace games.",cat:"Systems",diff:"Beginner",placement:"Script inside Part or ServerScriptService",code:
+`-- Teleport to Place
+-- Place Script inside a Part (portal) or ServerScriptService
+
+local TeleportService = game:GetService("TeleportService")
+local PLACE_ID = 0000000000 -- Replace with your Place ID
+local debounces = {}
+
+script.Parent.Touched:Connect(function(hit)
+    local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+    if not player or debounces[player.UserId] then return end
+    debounces[player.UserId] = true
+
+    local success, err = pcall(function()
+        TeleportService:Teleport(PLACE_ID, player)
+    end)
+
+    if not success then
+        warn("Teleport failed for " .. player.Name .. ": " .. err)
+        debounces[player.UserId] = nil
+    end
+end)`},
+
+  {id:22,title:"Team System",desc:"Assign players to teams on join with auto-balancing. Uses Roblox's built-in Teams service.",cat:"Systems",diff:"Intermediate",placement:"ServerScriptService",code:
+`-- Team System with Auto-Balance
+-- Place in ServerScriptService
+
+local Teams = game:GetService("Teams")
+
+-- Create teams (skip if already created in Explorer)
+local function getOrCreateTeam(name, color)
+    local existing = Teams:FindFirstChild(name)
+    if existing then return existing end
+    local team = Instance.new("Team", Teams)
+    team.Name      = name
+    team.TeamColor = BrickColor.new(color)
+    team.AutoAssignable = false
+    return team
+end
+
+local red  = getOrCreateTeam("Red Team",  "Bright red")
+local blue = getOrCreateTeam("Blue Team", "Bright blue")
+
+local function assignTeam(player)
+    local redCount  = #red:GetPlayers()
+    local blueCount = #blue:GetPlayers()
+    player.Team = redCount <= blueCount and red or blue
+    player.TeamColor = player.Team.TeamColor
+end
+
+game.Players.PlayerAdded:Connect(assignTeam)
+
+-- Re-balance on player leave
+game.Players.PlayerRemoving:Connect(function()
+    task.wait(1)
+    for _, p in ipairs(game.Players:GetPlayers()) do
+        assignTeam(p)
+    end
+end)`},
+
+  {id:23,title:"Tycoon Conveyor Belt",desc:"A moving conveyor belt that pushes parts or players in a direction. Classic tycoon mechanic.",cat:"Parts & Doors",diff:"Beginner",placement:"Script inside Conveyor Part",code:
+`-- Tycoon Conveyor Belt
+-- Place Script inside the conveyor Part
+
+local conveyor   = script.Parent
+local SPEED      = 20    -- studs per second
+local DIRECTION  = Vector3.new(1, 0, 0)  -- change to set direction
+
+-- Use AssemblyLinearVelocity to push touching parts
+conveyor.Touched:Connect(function(hit)
+    if hit.Anchored then return end
+
+    -- Push players
+    local humanoid = hit.Parent:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        local root = hit.Parent:FindFirstChild("HumanoidRootPart")
+        if root then
+            root.AssemblyLinearVelocity = DIRECTION * SPEED
+        end
+        return
+    end
+
+    -- Push loose parts (dropped items, products)
+    if hit:IsA("BasePart") then
+        hit.AssemblyLinearVelocity = DIRECTION * SPEED
+    end
+end)`},
+
+  {id:24,title:"Inventory System",desc:"Server-side inventory using a table. Add, remove, and check items. Pairs with a shop system.",cat:"Economy",diff:"Intermediate",placement:"ServerScriptService",code:
+`-- Inventory System
+-- Place in ServerScriptService
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Per-player inventory table (resets on rejoin — pair with DataStore to save)
+local inventories = {}
+
+-- RemoteFunction so client can read their own inventory
+local getInvRF = Instance.new("RemoteFunction")
+getInvRF.Name   = "GetInventory"
+getInvRF.Parent = ReplicatedStorage
+
+-- RemoteEvent for server-side add/remove
+local invEvent = Instance.new("RemoteEvent")
+invEvent.Name   = "InventoryEvent"
+invEvent.Parent = ReplicatedStorage
+
+game.Players.PlayerAdded:Connect(function(player)
+    inventories[player.UserId] = {}
+end)
+
+game.Players.PlayerRemoving:Connect(function(player)
+    inventories[player.UserId] = nil
+end)
+
+local function addItem(player, itemId, quantity)
+    local inv = inventories[player.UserId]
+    if not inv then return end
+    inv[itemId] = (inv[itemId] or 0) + (quantity or 1)
+    print(player.Name .. " gained " .. itemId .. " x" .. (quantity or 1))
+end
+
+local function removeItem(player, itemId, quantity)
+    local inv = inventories[player.UserId]
+    if not inv or not inv[itemId] then return false end
+    quantity = quantity or 1
+    if inv[itemId] < quantity then return false end
+    inv[itemId] = inv[itemId] - quantity
+    if inv[itemId] <= 0 then inv[itemId] = nil end
+    return true
+end
+
+getInvRF.OnServerInvoke = function(player)
+    return inventories[player.UserId] or {}
+end
+
+-- Listen for server-side inventory changes (call from other scripts)
+-- addItem(player, "Sword", 1)
+-- removeItem(player, "Sword", 1)`},
+
+  {id:25,title:"Music Player",desc:"Plays a list of songs in order using SoundService. Loops the playlist automatically.",cat:"Systems",diff:"Beginner",placement:"ServerScriptService",code:
+`-- Music Player
+-- Place in ServerScriptService
+
+local SoundService = game:GetService("SoundService")
+
+-- Add your Sound asset IDs here
+local PLAYLIST = {
+    "rbxassetid://0000000001",  -- Replace with real IDs
+    "rbxassetid://0000000002",
+    "rbxassetid://0000000003",
+}
+
+local SHUFFLE = false  -- set true to randomize order
+local currentIndex = 1
+
+-- Create the sound in SoundService
+local bgm = Instance.new("Sound")
+bgm.Name   = "BackgroundMusic"
+bgm.Volume = 0.5
+bgm.Parent = SoundService
+
+local function getNextIndex()
+    if SHUFFLE then
+        return math.random(1, #PLAYLIST)
+    end
+    local next = currentIndex + 1
+    return next > #PLAYLIST and 1 or next
+end
+
+local function playNext()
+    bgm.SoundId = PLAYLIST[currentIndex]
+    bgm:Play()
+    print("Now playing track " .. currentIndex)
+end
+
+bgm.Ended:Connect(function()
+    currentIndex = getNextIndex()
+    playNext()
+end)
+
+-- Start playing
+if #PLAYLIST > 0 then
+    playNext()
+end`},
 ];
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1107,3 +1293,4 @@ export default function App(){
     </>
   );
 }
+// THIS LINE INTENTIONALLY LEFT BLANK - scripts appended below
