@@ -11,7 +11,7 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "deepseek-r1-distill-llama-70b",
         max_tokens: 4096,
         messages: [
           { role: "system", content: req.body.system },
@@ -26,8 +26,11 @@ export default async function handler(req, res) {
       return res.status(response.status).json({ error: data });
     }
 
-    // Reformat to match Anthropic-style response so the frontend works unchanged
-    const text = data.choices?.[0]?.message?.content || "";
+    let text = data.choices?.[0]?.message?.content || "";
+
+    // Strip DeepSeek's <think>...</think> reasoning block before parsing
+    text = text.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+
     return res.status(200).json({
       content: [{ type: "text", text }]
     });

@@ -950,7 +950,7 @@ function AIFixer(){
     <div className="fixer-wrap">
       <div className="fixer-hero">
         <h2>Fix My <em>Script</em></h2>
-        <p>Paste any broken Roblox Studio script. Claude will find the bugs, explain what went wrong, and hand back a corrected version.</p>
+        <p>Paste any broken Roblox Studio script. AI will find the bugs, explain what went wrong, and hand back a corrected version.</p>
       </div>
 
       <div className="fixer-box">
@@ -958,7 +958,7 @@ function AIFixer(){
         <textarea className="fixer-textarea" value={code} onChange={e=>setCode(e.target.value)} spellCheck={false}
           placeholder={`-- Paste your script here, for example:\nlocal part = script.parent  -- bug: lowercase 'parent'\npart.Touched:Connect(function(hit)\n    hit.Parent.Humanoid.Health = 0\nend)`}/>
         <div className="fixer-actions">
-          <span className="fixer-hint">{code.trim()?`${code.split("\n").length} lines · Free · Powered by Claude`:"Free · Powered by Claude"}</span>
+          <span className="fixer-hint">{code.trim()?`${code.split("\n").length} lines · Free · AI Powered`:"Free · AI Powered"}</span>
           <button className="btn-fix" onClick={fix} disabled={loading||!code.trim()}>
             {loading?<><div className="spinner spinner-sm"/>Analyzing…</>:"🔧 Fix My Script"}
           </button>
@@ -1102,7 +1102,7 @@ export default function App(){
       )}
 
       <footer className="footer">
-        <b>StudioVault</b> · Free Luau scripts for Roblox developers · AI fixer powered by Claude
+        <b>StudioVault</b> · Free Luau scripts for Roblox developers · AI fixer powered by Groq
       </footer>
     </>
   );
